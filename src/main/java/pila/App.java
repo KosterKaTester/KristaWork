@@ -55,10 +55,10 @@ private static final String SQL_PASSWORD = "1234";
         in.close(); //Закрываем опрос пути
         //Начинаем работать с ДБ
         //Сначала пытаемся подключится к БД
-        Connection c = DriverManager.getConnection(SQL_ADDR, SQL_LOGIN, SQL_PASSWORD);
+        
         try
         {
-        
+        Connection c = DriverManager.getConnection(SQL_ADDR, SQL_LOGIN, SQL_PASSWORD);
         
         //Получаем инструкцию для работы с БД pSQL 
         Statement statement = c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY );
@@ -115,11 +115,6 @@ private static final String SQL_PASSWORD = "1234";
         catch(SQLException e)
         {
             e.printStackTrace();
-        }
-        finally
-        {
-            //Закрываем соединение с БД
-            c.close();
         }
     }
     
