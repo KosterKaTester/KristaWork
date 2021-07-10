@@ -33,7 +33,7 @@ private static final String SQL_PASSWORD = "1234";
         //Начало программы, сначала спрашиваем путь до файла
         //Чтобы не открывать сканнер много раз, откроем его один раз, а закроем после успешного поиска файла
         Scanner in = new Scanner(System.in);
-        File file_to_db;
+        File fileToDB;
         while (true)
         {
             //Код ожидания верного ввода названия файла
@@ -41,21 +41,27 @@ private static final String SQL_PASSWORD = "1234";
             //Получаем строку
             String path = in.nextLine();
             //Проверяем существет ли файл вообще
-            file_to_db = new File(path);
-            if(file_to_db.exists())
+            fileToDB = new File(path);
+            if(fileToDB.exists())
             {
                 //Проверяем, что файл является файлом с расширением xml
-                if (path.endsWith(".xml")) break; //Если всё хорошо, выходим из бескеонечного цикла и продолжаем работу программы
+                if (path.endsWith(".xml")) 
+                {    
+                    //Если всё хорошо, выходим из бескеонечного цикла и продолжаем работу программы
+                    break; 
+                }
             }
         }
         in.close(); //Закрываем опрос пути
         //Начинаем работать с ДБ
-        try
-        {
         //Сначала пытаемся подключится к БД
         Connection c = DriverManager.getConnection(SQL_ADDR, SQL_LOGIN, SQL_PASSWORD);
-        //Получаем инструкцию для работы с БД pSQL
-        Statement statement = c.createStatement();
+        try
+        {
+        
+        
+        //Получаем инструкцию для работы с БД pSQL 
+        Statement statement = c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY );
         
         //Инициализщируем сам парсер
         //Создаём экземпляр "фабрики"
@@ -63,34 +69,35 @@ private static final String SQL_PASSWORD = "1234";
         //Из фабрики получаем "Строителя"
         DocumentBuilder builder = factory.newDocumentBuilder();
         //После чего "парсим" документ
-        Document document = builder.parse(file_to_db);
+        Document document = builder.parse(fileToDB);
         //получаем ноду CATALOG
-        Element root_catalog = document.getDocumentElement();
+        Element rootCatalog = document.getDocumentElement();
         //создаём SQL комманду
-        String SQL_COMMAND = "INSERT INTO d_cat_catalog(delivery_date, company, uuid) "
-                                       + "VALUES('"+root_catalog.getAttribute("date")+"',"
-                                       + "'"+root_catalog.getAttribute("company")+"',"
-                                       + "'"+root_catalog.getAttribute("uuid")+"')";
+        String SQLCommand = "INSERT INTO d_cat_catalog(delivery_date, company, uuid) "
+                                       + "VALUES('"+rootCatalog.getAttribute("date")+"',"
+                                       + "'"+rootCatalog.getAttribute("company")+"',"
+                                       + "'"+rootCatalog.getAttribute("uuid")+"')";
         
         //Вызываем комманду
-        statement.executeUpdate(SQL_COMMAND);
+        statement.executeUpdate(SQLCommand);
         //Теперь создаём комманду SELECT
-        SQL_COMMAND = "SELECT * FROM d_cat_catalog WHERE (delivery_date = '"
-                + root_catalog.getAttribute("date") + "')AND(company = '"
-                 +root_catalog.getAttribute("company") + "')";
-        ResultSet catRs = statement.executeQuery(SQL_COMMAND);
-        catRs.next();
+        SQLCommand = "SELECT * FROM d_cat_catalog WHERE (delivery_date = '"
+                + rootCatalog.getAttribute("date") + "')AND(company = '"
+                 +rootCatalog.getAttribute("company") + "')";
+        ResultSet catRs = statement.executeQuery(SQLCommand);
+
+        catRs.last();
         //Получаем ID
         int catId = catRs.getInt("id");       
         //В XML документе получаем все записи с "PLANT"
-        NodeList plant = root_catalog.getElementsByTagName("PLANT");
+        NodeList plant = rootCatalog.getElementsByTagName("PLANT");
         //Перебираем их
         for (int i = 0;i < plant.getLength();i++)
         {
             //Получаем элемент из ноды PLANT
             Element elem = (Element) plant.item(i);
             //Создаём SQL комманду, в неё записываем данные из элементов plant
-            SQL_COMMAND = "INSERT INTO f_cat_plants(COMMON, BOTANICAL, ZONE, LIGHT, PRICE, AVAILABILITY, CATALOG_ID) "
+            SQLCommand = "INSERT INTO f_cat_plants(COMMON, BOTANICAL, ZONE, LIGHT, PRICE, AVAILABILITY, CATALOG_ID) "
                                                + "VALUES("
                                                + "'"+elem.getElementsByTagName("COMMON").item(0).getTextContent()+"',"
                                                + "'"+elem.getElementsByTagName("BOTANICAL").item(0).getTextContent()+"',"
@@ -100,17 +107,20 @@ private static final String SQL_PASSWORD = "1234";
                                                + "'"+elem.getElementsByTagName("AVAILABILITY").item(0).getTextContent()+"'," //
                                                + "'"+catId+"')";
             //Делаем обращение к БД
-            statement.executeUpdate(SQL_COMMAND);
+            statement.executeUpdate(SQLCommand);
        
         }
-        //Закрываем соединение с БД
-        c.close();
+        
         }
         catch(SQLException e)
         {
             e.printStackTrace();
         }
-    
+        finally
+        {
+            //Закрываем соединение с БД
+            c.close();
+        }
     }
     
 }
