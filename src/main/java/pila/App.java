@@ -73,18 +73,18 @@ private static final String SQL_PASSWORD = "1234";
         //получаем ноду CATALOG
         Element rootCatalog = document.getDocumentElement();
         //создаём SQL комманду
-        String SQLCommand = "INSERT INTO d_cat_catalog(delivery_date, company, uuid) "
+        String sqlCommand = "INSERT INTO d_cat_catalog(delivery_date, company, uuid) "
                                        + "VALUES('"+rootCatalog.getAttribute("date")+"',"
                                        + "'"+rootCatalog.getAttribute("company")+"',"
                                        + "'"+rootCatalog.getAttribute("uuid")+"')";
         
         //Вызываем комманду
-        statement.executeUpdate(SQLCommand);
+        statement.executeUpdate(sqlCommand);
         //Теперь создаём комманду SELECT
-        SQLCommand = "SELECT * FROM d_cat_catalog WHERE (delivery_date = '"
+        sqlCommand = "SELECT * FROM d_cat_catalog WHERE (delivery_date = '"
                 + rootCatalog.getAttribute("date") + "')AND(company = '"
                  +rootCatalog.getAttribute("company") + "')";
-        ResultSet catRs = statement.executeQuery(SQLCommand);
+        ResultSet catRs = statement.executeQuery(sqlCommand);
 
         catRs.last();
         //Получаем ID
@@ -97,7 +97,7 @@ private static final String SQL_PASSWORD = "1234";
             //Получаем элемент из ноды PLANT
             Element elem = (Element) plant.item(i);
             //Создаём SQL комманду, в неё записываем данные из элементов plant
-            SQLCommand = "INSERT INTO f_cat_plants(COMMON, BOTANICAL, ZONE, LIGHT, PRICE, AVAILABILITY, CATALOG_ID) "
+            sqlCommand = "INSERT INTO f_cat_plants(COMMON, BOTANICAL, ZONE, LIGHT, PRICE, AVAILABILITY, CATALOG_ID) "
                                                + "VALUES("
                                                + "'"+elem.getElementsByTagName("COMMON").item(0).getTextContent()+"',"
                                                + "'"+elem.getElementsByTagName("BOTANICAL").item(0).getTextContent()+"',"
@@ -107,7 +107,7 @@ private static final String SQL_PASSWORD = "1234";
                                                + "'"+elem.getElementsByTagName("AVAILABILITY").item(0).getTextContent()+"'," //
                                                + "'"+catId+"')";
             //Делаем обращение к БД
-            statement.executeUpdate(SQLCommand);
+            statement.executeUpdate(sqlCommand);
        
         }
         
